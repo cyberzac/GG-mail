@@ -55,23 +55,42 @@ public class MailController {
 
 
     @RequestMapping(method = RequestMethod.POST)
-    public ModelAndView handleEmailUpload(@RequestParam("email") MultipartFile email) {
-        String result = "failed";
-        if (!email.isEmpty()) {
-            try {
-                byte[] bytes = email.getBytes();
-                log.debug("sendmail got {} bytes", bytes.length);
-                result = mailer.sendMail(bytes);
-                result = "ok";
-            } catch (IOException e) {
-                log.error("Failed receiving email data", e);
-            }
+      public ModelAndView handleEmailUpload(@RequestParam("email") MultipartFile email) {
+          String result = "failed";
+          if (!email.isEmpty()) {
+              try {
+                  byte[] bytes = email.getBytes();
+                  log.debug("sendmail got {} bytes", bytes.length);
+                  result = mailer.sendMail(bytes);
+              } catch (IOException e) {
+                  log.error("Failed receiving email data", e);
+              }
 
-        }
-        ModelAndView mav = new ModelAndView("result");
-        mav.addObject("result", result);
-        return mav;
-    }
+          }
+          ModelAndView mav = new ModelAndView("result");
+          mav.addObject("result", result);
+          return mav;
+      }
+
+
+    @RequestMapping(method = RequestMethod.PUT)
+      public ModelAndView handleEmailPut(@RequestParam("email") MultipartFile email) {
+          String result = "failed";
+          if (!email.isEmpty()) {
+              try {
+                  byte[] bytes = email.getBytes();
+                  log.debug("sendmail got {} bytes", bytes.length);
+                  result = mailer.sendMail(bytes);
+                  result = "ok";
+              } catch (IOException e) {
+                  log.error("Failed receiving email data", e);
+              }
+
+          }
+          ModelAndView mav = new ModelAndView("result");
+          mav.addObject("result", result);
+          return mav;
+      }
 
 
     public void setMailer(Mailer mailer) {

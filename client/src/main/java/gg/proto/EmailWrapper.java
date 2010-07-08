@@ -23,16 +23,23 @@ package gg.proto;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 
 public class EmailWrapper {
 
     private Logger log = LoggerFactory.getLogger(getClass());
+    //@Autowired
+    private RestTemplate restTemplate = new RestTemplate();
 
     private final Email.email email;
+    private final static String URI = "http://localhost:8080/server/app/sendmail";
 
     public EmailWrapper(String from, List<String> to, String subject, String body) {
         Email.email.Builder builder = Email.email.newBuilder();
@@ -53,6 +60,16 @@ public class EmailWrapper {
 
     public void send() {
         log.info("Sending mail is: {}", email);
+
+        URI uri = null;
+        try {
+            uri = new URI(URI);
+        } catch (URISyntaxException e) {
+            log.error("Bad URI to email service, ignoring mail");
+            return;
+        }
+        restTemplate.put(uri, email.toByteArray());
+        /*
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(new File("email.proto-bin"));
@@ -60,6 +77,7 @@ public class EmailWrapper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
     }
 
     public List<String> getTo() {

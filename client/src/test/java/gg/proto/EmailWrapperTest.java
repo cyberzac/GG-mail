@@ -41,6 +41,7 @@ public class EmailWrapperTest {
 
     @Test
     public void testSend() throws Exception {
+        //dut.send();
     }
 
     @Test

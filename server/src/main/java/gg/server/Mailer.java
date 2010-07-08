@@ -34,11 +34,14 @@ public class Mailer {
 
     public String sendMail(byte[] bytes) {
         EmailWrapper emailWrapper = null;
+
         try {
-            emailWrapper = new EmailWrapper(bytes);
+           //log.debug("Tuff skit");
+           emailWrapper = new EmailWrapper(bytes);
         } catch (InvalidProtocolBufferException e) {
            return "Invalid mail: "+e.getMessage();
         }
+
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(emailWrapper.getTo().toArray(new String[0]));
         mail.setFrom(emailWrapper.getFrom());
