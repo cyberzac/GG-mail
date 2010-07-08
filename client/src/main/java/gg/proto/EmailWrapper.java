@@ -20,16 +20,11 @@
 
 package gg.proto;
 
-import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
-import gg.proto.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 
@@ -39,10 +34,11 @@ public class EmailWrapper {
 
     private final Email.email email;
 
-    public EmailWrapper(String from, List<String> to, String body) {
+    public EmailWrapper(String from, List<String> to, String subject, String body) {
         Email.email.Builder builder = Email.email.newBuilder();
         builder.setFrom(from);
         builder.addAllTo(to);
+        builder.setSubject(subject);
         builder.setBody(body);
         email = builder.build();
     }
@@ -51,11 +47,15 @@ public class EmailWrapper {
         email = Email.email.parseFrom(data);
     }
 
+    public EmailWrapper(InputStream is) throws IOException {
+        email = Email.email.parseFrom(is);
+    }
+
     public void send() {
         log.info("Sending mail is: {}", email);
         FileOutputStream fos = null;
         try {
-            fos = new FileOutputStream(new File("email.proto"));
+            fos = new FileOutputStream(new File("email.proto-bin"));
             email.writeTo(fos);
         } catch (IOException e) {
             e.printStackTrace();

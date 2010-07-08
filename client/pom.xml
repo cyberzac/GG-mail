@@ -42,12 +42,6 @@
             <version>1.0.13</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -61,14 +55,14 @@
                         <phase>generate-sources</phase>
                         <configuration>
                             <tasks>
-                                <mkdir dir="target/generated-sources"/>
+                                <mkdir dir="src/generated"/>
                                 <exec executable="${protoc}">
-                                    <arg value="--java_out=target/generated-sources"/>
+                                    <arg value="--java_out=src/generated"/>
                                     <!--arg value="-proto_path=src"/-->
                                     <arg value="src/main/proto/email.proto"/>
                                 </exec>
                             </tasks>
-                            <sourceRoot>target/generated-sources</sourceRoot>
+                            <sourceRoot>src/main/generated</sourceRoot>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -96,6 +90,34 @@
                     </execution-->
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>attached</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>gg.client.SendMail</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
+
+        <finalName>ggmail</finalName>
+
     </build>
+
 </project>
