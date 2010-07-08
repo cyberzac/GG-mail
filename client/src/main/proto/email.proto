@@ -1,0 +1,15 @@
+package gg.proto;
+
+message email {
+    repeated string to = 1;
+    optional string from = 2;
+    optional string subject = 3;
+    optional string body = 4;
+}
+
+message result {
+}
+
+service EmailService {
+    rpc SendMail (email) returns (result);
+}
