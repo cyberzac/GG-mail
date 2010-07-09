@@ -2,10 +2,15 @@ package gg.server;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import gg.proto.EmailWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * User: zac
@@ -29,29 +34,43 @@ import org.springframework.stereotype.Component;
 @Component
 public class Mailer {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private MailSender mailSender;
 
-    public String sendMail(byte[] bytes) {
-        EmailWrapper emailWrapper = null;
-
+    public void sendMail(byte[] bytes) throws EmailException {
         try {
-           //log.debug("Tuff skit");
-           emailWrapper = new EmailWrapper(bytes);
+            sendMail(new EmailWrapper(bytes));
         } catch (InvalidProtocolBufferException e) {
-           return "Invalid mail: "+e.getMessage();
+            throw new EmailException(e);
         }
+    }
 
+    private void sendMail(EmailWrapper emailWrapper) {
         SimpleMailMessage mail = new SimpleMailMessage();
-        mail.setTo(emailWrapper.getTo().toArray(new String[0]));
+        mail.setTo(emailWrapper.getToAsArray());
         mail.setFrom(emailWrapper.getFrom());
         mail.setSubject(emailWrapper.getSubject());
         mail.setText(emailWrapper.getBody());
         mailSender.send(mail);
-        return "ok";
+        log.debug("Sent mail");
     }
 
-    protected void setMailSender(MailSender mailSender) {
+
+    public void sendMail(InputStream inputStream) throws EmailException {
+        try {
+            sendMail(new EmailWrapper(inputStream));
+        } catch (IOException e) {
+            throw new EmailException(e);
+        }
+
+    }
+
+    // Use for mocking
+
+    void setMailSender(MailSender mailSender) {
         this.mailSender = mailSender;
     }
+
 }

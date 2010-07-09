@@ -1,12 +1,8 @@
 package gg.server;
 
-import gg.proto.Email;
-import gg.proto.EmailWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -14,7 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * User: zac
@@ -39,61 +38,65 @@ import java.io.IOException;
 @RequestMapping("/sendmail")
 public class MailController {
 
-    Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private Mailer mailer;
 
+    private final ModelAndView success = new ModelAndView("success");
+
 
     @RequestMapping(method = RequestMethod.GET)
-    public ModelAndView hello() {
-        log.debug("hello");
-        ModelAndView mav = new ModelAndView("index");
-        mav.addObject("message", "Hello index");
-        return mav;
+    public String index() {
+        return "index";
 
     }
 
 
     @RequestMapping(method = RequestMethod.POST)
-      public ModelAndView handleEmailUpload(@RequestParam("email") MultipartFile email) {
-          String result = "failed";
-          if (!email.isEmpty()) {
-              try {
-                  byte[] bytes = email.getBytes();
-                  log.debug("sendmail got {} bytes", bytes.length);
-                  result = mailer.sendMail(bytes);
-              } catch (IOException e) {
-                  log.error("Failed receiving email data", e);
-              }
-
-          }
-          ModelAndView mav = new ModelAndView("result");
-          mav.addObject("result", result);
-          return mav;
-      }
+    public ModelAndView handleEmailUpload(@RequestParam("email") MultipartFile email) {
+        if (!email.isEmpty()) {
+            try {
+                byte[] bytes = email.getBytes();
+                log.debug("Got POST {} bytes", bytes.length);
+                mailer.sendMail(bytes);
+            } catch (IOException e) {
+                return errorPage("Failed receiving email data", e);
+            } catch (RuntimeException e) {
+                return errorPage("Failed sending mail", e);
+            }
+        }
+        return success;
+    }
 
 
     @RequestMapping(method = RequestMethod.PUT)
-      public ModelAndView handleEmailPut(@RequestParam("email") MultipartFile email) {
-          String result = "failed";
-          if (!email.isEmpty()) {
-              try {
-                  byte[] bytes = email.getBytes();
-                  log.debug("sendmail got {} bytes", bytes.length);
-                  result = mailer.sendMail(bytes);
-                  result = "ok";
-              } catch (IOException e) {
-                  log.error("Failed receiving email data", e);
-              }
+    public ModelAndView handleEmailPut(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            InputStream inputStream = request.getInputStream();
+            if (inputStream != null) {
+                log.debug("Got PUT");
+                mailer.sendMail(inputStream);
+            }
+        } catch (IOException e) {
+            return errorPage("Failed handling put {}", e);
+        } catch (RuntimeException e) {
+            return errorPage("Failed sending mail", e);
+        }
+        return success;
+    }
 
-          }
-          ModelAndView mav = new ModelAndView("result");
-          mav.addObject("result", result);
-          return mav;
-      }
+    private ModelAndView errorPage(String reason, Exception exception) {
+        log.error("{}: {}", reason, exception.getMessage());
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("reason", reason);
+        mav.addObject("exception", exception);
+        return mav;
+    }
 
+    // Use for mocking
 
-    public void setMailer(Mailer mailer) {
+    void setMailer(Mailer mailer) {
         this.mailer = mailer;
     }
 }

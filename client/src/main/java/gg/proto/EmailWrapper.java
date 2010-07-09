@@ -23,10 +23,12 @@ package gg.proto;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -34,9 +36,10 @@ import java.util.List;
 
 public class EmailWrapper {
 
-    private Logger log = LoggerFactory.getLogger(getClass());
-    //@Autowired
-    private RestTemplate restTemplate = new RestTemplate();
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    // This should use factory injection
+    private final RestTemplate restTemplate = new RestTemplate();
 
     private final Email.email email;
     private final static String URI = "http://localhost:8080/server/app/sendmail";
@@ -59,9 +62,9 @@ public class EmailWrapper {
     }
 
     public void send() {
-        log.info("Sending mail is: {}", email);
+        log.debug("Sending mail is: {}", email);
 
-        URI uri = null;
+        URI uri;
         try {
             uri = new URI(URI);
         } catch (URISyntaxException e) {
@@ -69,15 +72,17 @@ public class EmailWrapper {
             return;
         }
         restTemplate.put(uri, email.toByteArray());
-        /*
-        FileOutputStream fos = null;
+
+    }
+
+    public void dump() {
         try {
-            fos = new FileOutputStream(new File("email.proto-bin"));
+            FileOutputStream fos = new FileOutputStream(new File("email.proto-bin"));
             email.writeTo(fos);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed dumping to file", e);
         }
-        */
+
     }
 
     public List<String> getTo() {
@@ -96,4 +101,8 @@ public class EmailWrapper {
         return email.getSubject();
     }
 
+    public String[] getToAsArray() {
+        List<String> toList = getTo();
+        return toList.toArray(new String[toList.size()]);
+    }
 }

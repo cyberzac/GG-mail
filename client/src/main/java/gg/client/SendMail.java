@@ -16,14 +16,15 @@ import java.util.List;
  */
 public class SendMail {
 
-    private static Logger log = LoggerFactory.getLogger("SendMail");
+    private final static Logger log = LoggerFactory.getLogger("SendMail");
 
     public static void main(String[] args) {
 
         int c;
         String from = "nobody@inter.net";
         String subject = "";
-        Getopt getOpt = new Getopt("ggmail", args, "f:s:");
+        boolean dump = false;
+        Getopt getOpt = new Getopt("ggmail", args, "f:s:d");
         while ((c = getOpt.getopt()) != -1) {
             switch (c) {
                 case 'f':
@@ -31,6 +32,10 @@ public class SendMail {
                     break;
                 case 's':
                     subject = getOpt.getOptarg();
+                    break;
+                case 'd':
+                    dump = true;
+                    break;
             }
         }
         StringBuilder bodyBuilder = new StringBuilder();
@@ -50,6 +55,10 @@ public class SendMail {
         List<String> to = input.subList(getOpt.getOptind(), input.size());
         String body = bodyBuilder.toString();
         EmailWrapper emailWrapper = new EmailWrapper(from, to, subject, body);
-        emailWrapper.send();
+        if (dump) {
+            emailWrapper.dump();
+        } else {
+            emailWrapper.send();
+        }
     }
 }
